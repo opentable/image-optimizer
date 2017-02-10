@@ -11,7 +11,7 @@ Image-Optimizer aims to solve this problem by:
 ## Usage
 
 ### Install
-```bash
+```sh
 yarn add image-optimizer
 ```
 
@@ -24,3 +24,5 @@ imageOptimizer({
   blacklist: []          // The list of directories/files not to optimize.
 }, (err, result) => {...});
 ```
+
+Once the optmization has taken place a ```__imageDigest.json``` will be placed in the ```root``` directory.
