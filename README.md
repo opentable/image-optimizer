@@ -25,7 +25,7 @@ imageOptimizer({
 }, (err, result) => {...});
 ```
 
-Once the optmization has taken place a ```__imageDigest.json``` will be placed in the ```root``` directory.
+Once the optmization has taken place a ```__image-digest.json``` will be placed in the ```root``` directory.
 
 ## Support Formats
 

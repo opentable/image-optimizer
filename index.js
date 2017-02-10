@@ -5,7 +5,7 @@ const path = require('path');
 const _ = require('lodash');
 const fs = require('fs');
 
-const DIGEST_FILENAME = '__imageDigest.json';
+const DIGEST_FILENAME = '__image-digest.json';
 const SUPPORTED_FORMATS = ['.jpeg', '.jpg', '.png'];
 
 const optimiseImage = (filePath, format, callback) => {
