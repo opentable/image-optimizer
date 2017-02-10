@@ -4,6 +4,10 @@
   "description": "Smart image optimization",
   "main": "index.js",
   "author": "Chris Cartlidge <ccartlidge@opentable.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentable/image-optimizer"
+  },
   "license": "MIT",
   "dependencies": {
     "async": "^2.1.4",
