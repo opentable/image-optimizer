@@ -27,7 +27,7 @@ imageOptimizer({
 
 Once the optmization has taken place a ```__image-digest.json``` will be placed in the ```root``` directory.
 
-## Support Formats
+## Supported Formats
 
 At the moment the following image formats are supported:
 
