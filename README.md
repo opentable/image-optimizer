@@ -1,4 +1,4 @@
-# [WIP] Image-Optimizer
+# Image-Optimizer
 
 In today's media rich world websites tend to have a great deal of imagery. But it's easy to forgot about the user with slow internet connections that have to download these images!
 
