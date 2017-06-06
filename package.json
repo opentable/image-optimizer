@@ -14,5 +14,10 @@
     "hash-files": "^1.1.1",
     "lodash": "^4.17.4",
     "sharp": "^0.17.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "^2.3.0"
   }
 }

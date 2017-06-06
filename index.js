@@ -8,32 +8,39 @@ const fs = require('fs');
 const DIGEST_FILENAME = '__image-digest.json';
 const SUPPORTED_FORMATS = ['.jpeg', '.jpg', '.png'];
 
+const generateFileHash = filePath => hash.sync({ files: [filePath], algorithm: 'sha1' });
+const isOptimised = (filePath, digest) => generateFileHash(filePath) === digest[filePath];
+const isDirectory = filePath => fs.statSync(filePath).isDirectory();
+const getDigestPath = digestRoot => path.join(digestRoot, DIGEST_FILENAME);
+
+const isFileSupported = (filePath) => {
+  const extension = path.extname(filePath).toLowerCase();
+  return SUPPORTED_FORMATS.includes(extension);
+};
+
 const optimiseImage = (filePath, format, callback) => {
-  let tempPath = filePath + '.tmp';
+  const tempPath = `${filePath}.tmp`;
 
   sharp(filePath)
     .quality(75)
     .toFormat(format)
-    .toFile(tempPath, (err, result) => {
+    .toFile(tempPath, (err) => {
       if (err) {
         return callback(err, null);
       }
 
-      let hash = generateHashOfFile(tempPath);
-
       fs.renameSync(tempPath, filePath);
 
-      return callback(null, { filePath, hash });
+      return callback(null, { filePath, hash: generateFileHash(tempPath) });
     });
 };
 
 const saveDigest = (digestRoot, digest) => {
-  let filePath = path.join(digestRoot, DIGEST_FILENAME);
-  fs.writeFileSync(filePath, JSON.stringify(digest, null, 4), { encoding: 'utf8' });
+  return fs.writeFileSync(getDigestPath(digestRoot), JSON.stringify(digest, null, 4), { encoding: 'utf8' });
 };
 
 const loadDigest = (digestRoot) => {
-  let filePath = path.join(digestRoot, DIGEST_FILENAME);
+  const filePath = getDigestPath(digestRoot);
 
   if (fs.existsSync(filePath)) {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -42,37 +49,19 @@ const loadDigest = (digestRoot) => {
   return [];
 };
 
-const isOptimised = (filePath, digest) => {
-  let hash = generateHashOfFile(filePath);
-  return hash === digest[filePath];
-};
-
-const generateHashOfFile = (filePath) => {
-  return hash.sync({ files: [filePath], algorithm: 'sha1' });
-};
-
-const isFileSupported = (filePath) => {
-  let extension = path.extname(filePath).toLowerCase();
-  return SUPPORTED_FORMATS.includes(extension);
-};
-
-const isDirectory = (filePath) => {
-  return fs.statSync(filePath).isDirectory();
-};
-
 const isJpeg = (filePath) => {
-  let extension = path.extname(filePath).toLowerCase();
+  const extension = path.extname(filePath).toLowerCase();
   return extension === '.jpeg' || extension === '.jpg';
 };
 
 const getImagePathsInDirectory = (dir, filelist = []) => {
-  fs.readdirSync(dir).forEach(file => {
-    let filePath = path.join(dir, file);
-
+  let files = filelist;
+  fs.readdirSync(dir).forEach((file) => {
+    const filePath = path.join(dir, file);
     if (isDirectory(filePath)) {
       getImagePathsInDirectory(path.join(dir, file), filelist);
     } else if (isFileSupported(filePath)) {
-      filelist = filelist.concat(path.join(dir, file));
+      files = files.concat(path.join(dir, file));
     }
   });
 
@@ -80,24 +69,21 @@ const getImagePathsInDirectory = (dir, filelist = []) => {
 };
 
 module.exports = (options, callback) => {
-  let filePaths = getImagePathsInDirectory(options.root);
-  let digest = loadDigest(options.root);
+  const filePaths = getImagePathsInDirectory(options.root);
+  const digest = loadDigest(options.root);
 
-  let optimiseTasks = _(filePaths)
-    .filter(filePath => {
-      return !isOptimised(filePath, digest);
-    })
-    .map(filePath => {
-      let format = isJpeg(filePath) ? sharp.format.jpeg : sharp.format.png;
-      return (callback) => optimiseImage(filePath, format, callback);
-    }).value();
+  const optimiseTasks = _(filePaths)
+    .filter(filePath => !isOptimised(filePath, digest))
+    .map(filePath => cb =>
+      optimiseImage(filePath,
+        isJpeg(filePath) ? sharp.format.jpeg : sharp.format.png,
+        cb)).value();
 
   async.parallel(optimiseTasks, (err, result) => {
     if (err) {
       return callback(err, null);
     }
-    saveDigest(options.root, _.assign(digest, result));
+    return saveDigest(options.root, _.assign(digest, result));
   });
-
   return callback(null, null);
 };
